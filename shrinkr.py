@@ -40,9 +40,6 @@ def compress_file(input_file, target_size, output_format, show_background, outpu
         video_bitrate = (max_bitrate + min_bitrate) // 2
         cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', video_codec, '-b:v', f'{video_bitrate}k', '-c:a', audio_codec, '-b:a', audio_bitrate] + codec_options + [output_file]
         
-        print(f"Output file: {output_file}")
-        print(f"ffmpeg command: {cmd}")
-        
         if show_background:
             subprocess.run(cmd)
         else:
@@ -66,12 +63,12 @@ def compress_file(input_file, target_size, output_format, show_background, outpu
 
 def parse_size(size_str):
     size_str = size_str.lower()
-    if size_str.endswith('k'):
-        return int(size_str[:-1]) * 1024
-    elif size_str.endswith('m'):
-        return int(size_str[:-1]) * 1024 * 1024
-    elif size_str.endswith('g'):
-        return int(size_str[:-1]) * 1024 * 1024 * 1024
+    if size_str.endswith('kb'):
+        return int(size_str[:-2]) * 1024
+    elif size_str.endswith('mb'):
+        return int(size_str[:-2]) * 1024 * 1024
+    elif size_str.endswith('gb'):
+        return int(size_str[:-2]) * 1024 * 1024 * 1024
     else:
         return int(size_str)
     
@@ -83,8 +80,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress a video file.')
     parser.add_argument('file', help='The video file you want to compress.')
     parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
-    parser.add_argument('-s', '--size', default='7m', help='Compress a file to a custom size (5m, 10m, etc.).', type=parse_size)
-    parser.add_argument('-o', '--output', help='Output directory')
+    parser.add_argument('-s', '--size', default='7m', help='Compress a file to a custom size (400kb, 5mb, etc.).', type=parse_size)
+    parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
     
     try:
