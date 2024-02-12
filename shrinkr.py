@@ -5,11 +5,11 @@ import argparse
 import time
 import itertools
 
-def compress_file(input_file, target_size, show_background):
+def compress_file(input_file, target_size, output_format, show_background, output_dir=None):
     base_dir = os.path.dirname(input_file)
     base_name = os.path.basename(input_file)
     name, _ = os.path.splitext(base_name)
-    output_file = os.path.join(base_dir, f"{name}_compressed.mp4")
+    output_file = os.path.join(output_dir, f"{name}_compressed.{output_format}")
     min_bitrate = 0
     max_bitrate = 10000 
     audio_bitrate = "128k"
@@ -18,13 +18,30 @@ def compress_file(input_file, target_size, show_background):
     os.makedirs(log_dir, exist_ok=True)
     
 
+    
     spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
 
     print("Compressing files, please wait...", end="", flush=True)
 
+    codec_map = {
+        'mp4': ('libx264', 'aac', ['-preset', 'ultrafast']),
+        'webm': ('libvpx', 'libopus', ['-cpu-used', '5']),
+    }
+    
+    if output_format not in codec_map:
+        print(f"Unsupported output format: {output_format}")
+        return
+    
+    if output_dir is None:
+        output_dir = base_dir
+    video_codec, audio_codec, codec_options = codec_map[output_format]
+    
     while max_bitrate - min_bitrate > 1:
         video_bitrate = (max_bitrate + min_bitrate) // 2
-        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libx264', '-b:v', f'{video_bitrate}k', '-c:a', 'aac', '-b:a', audio_bitrate, '-f', 'mp4', output_file]
+        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', video_codec, '-b:v', f'{video_bitrate}k', '-c:a', audio_codec, '-b:a', audio_bitrate] + codec_options + [output_file]
+        
+        print(f"Output file: {output_file}")
+        print(f"ffmpeg command: {cmd}")
         
         if show_background:
             subprocess.run(cmd)
@@ -57,14 +74,22 @@ def parse_size(size_str):
         return int(size_str[:-1]) * 1024 * 1024 * 1024
     else:
         return int(size_str)
+    
+def main(args):
+    output_file = compress_file(args.file, args.size, args.format, args.show_background, args.output)
+    print(f"Compressed file saved as {output_file}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress a video file.')
     parser.add_argument('file', help='The video file you want to compress.')
+    parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
     parser.add_argument('-s', '--size', default='7m', help='Compress a file to a custom size (5m, 10m, etc.).', type=parse_size)
-    parser.add_argument('-o', '--output', default='.', help='The output directory for the compressed file.')
+    parser.add_argument('-o', '--output', help='Output directory')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
-    args = parser.parse_args()
-
-    output_file = compress_file(args.file, args.size, args.show_background)
-    print(f"Compressed file saved as {output_file}")
+    
+    try:
+        args = parser.parse_args()
+    except SystemExit:
+        parser.print_help()
+        sys.exit(0)
+    main(args)
