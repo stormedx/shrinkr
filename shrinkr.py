@@ -12,6 +12,10 @@ def compress_file(input_file, target_size, output_dir, show_background):
     min_bitrate = 0
     max_bitrate = 10000 
     audio_bitrate = "128k"
+    log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    log_file = os.path.join(log_dir, 'ffmpeg2pass')
+    os.makedirs(log_dir, exist_ok=True)
+    
 
     spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
 
@@ -19,7 +23,8 @@ def compress_file(input_file, target_size, output_dir, show_background):
 
     while max_bitrate - min_bitrate > 1:
         video_bitrate = (max_bitrate + min_bitrate) // 2
-        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libx264', '-b:v', f'{video_bitrate}k', '-c:a', 'aac', '-b:a', audio_bitrate, '-f', 'mp4', output_file]
+        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30', '-pass', '1', '-passlogfile', log_file, '-c:a', 'libopus', '-b:a', '64k', '-f', 'webm', '/dev/null']
+        cmd2 = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30', '-pass', '2', '-passlogfile', log_file, '-c:a', 'libopus', '-b:a', '64k', '-f', 'webm', output_file]
         
         if show_background:
             subprocess.run(cmd)
@@ -55,8 +60,8 @@ def parse_size(size_str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress a video file.')
-    parser.add_argument('file', help='The video file to compress.')
-    parser.add_argument('-s', '--size', default='7m', help='Compress file to a custom size (ie. 5m).', type=parse_size)
+    parser.add_argument('file', help='The video file you want to compress.')
+    parser.add_argument('-s', '--size', default='7m', help='Compress a file to a custom size (5m, 10m, etc.).', type=parse_size)
     parser.add_argument('-o', '--output', default='.', help='The output directory for the compressed file.')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
     args = parser.parse_args()
