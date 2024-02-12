@@ -65,7 +65,7 @@ def compress_file(input_file, target_size, output_format, show_background, no_au
         else:
             min_bitrate = video_bitrate
 
-        print(f"\nFile size: {size / 1024 / 1024}MB")
+    print(f"\nFinal file size: {size / 1024 / 1024}MB")
     return output_file
 
 def parse_size(size_str):
