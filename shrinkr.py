@@ -5,10 +5,11 @@ import argparse
 import time
 import itertools
 
-def compress_file(input_file, target_size, output_dir, show_background):
+def compress_file(input_file, target_size, show_background):
+    base_dir = os.path.dirname(input_file)
     base_name = os.path.basename(input_file)
     name, _ = os.path.splitext(base_name)
-    output_file = os.path.join(output_dir, f"{name}_compressed.mp4")
+    output_file = os.path.join(base_dir, f"{name}_compressed.mp4")
     min_bitrate = 0
     max_bitrate = 10000 
     audio_bitrate = "128k"
@@ -23,8 +24,7 @@ def compress_file(input_file, target_size, output_dir, show_background):
 
     while max_bitrate - min_bitrate > 1:
         video_bitrate = (max_bitrate + min_bitrate) // 2
-        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30', '-pass', '1', '-passlogfile', log_file, '-c:a', 'libopus', '-b:a', '64k', '-f', 'webm', '/dev/null']
-        cmd2 = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '30', '-pass', '2', '-passlogfile', log_file, '-c:a', 'libopus', '-b:a', '64k', '-f', 'webm', output_file]
+        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', 'libx264', '-b:v', f'{video_bitrate}k', '-c:a', 'aac', '-b:a', audio_bitrate, '-f', 'mp4', output_file]
         
         if show_background:
             subprocess.run(cmd)
@@ -66,5 +66,5 @@ if __name__ == "__main__":
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
     args = parser.parse_args()
 
-    output_file = compress_file(args.file, args.size, args.output, args.show_background)
+    output_file = compress_file(args.file, args.size, args.show_background)
     print(f"Compressed file saved as {output_file}")
