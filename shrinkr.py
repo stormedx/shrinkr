@@ -5,7 +5,7 @@ import argparse
 import time
 import itertools
 
-def compress_file(input_file, target_size, output_format, show_background, output_dir=None):
+def compress_file(input_file, target_size, output_format, show_background, no_audio, output_dir=None):
     
     if output_dir is None:
         output_dir = os.path.dirname(input_file)
@@ -39,8 +39,15 @@ def compress_file(input_file, target_size, output_format, show_background, outpu
     
     while max_bitrate - min_bitrate > 1:
         video_bitrate = (max_bitrate + min_bitrate) // 2
-        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', video_codec, '-b:v', f'{video_bitrate}k', '-c:a', audio_codec, '-b:a', audio_bitrate] + codec_options + [output_file]
-        
+        cmd = ['ffmpeg', '-y', '-i', input_file, '-c:v', video_codec, '-b:v', f'{video_bitrate}k'] + codec_options
+
+        if not no_audio:
+            cmd += ['-c:a', audio_codec, '-b:a', audio_bitrate]
+        else:
+            cmd += ['-an']
+
+        cmd += [output_file]
+            
         if show_background:
             subprocess.run(cmd)
         else:
@@ -58,8 +65,7 @@ def compress_file(input_file, target_size, output_format, show_background, outpu
         else:
             min_bitrate = video_bitrate
 
-    print(f"\nFile size: {size / 1024 / 1024}MB")
-
+        print(f"\nFile size: {size / 1024 / 1024}MB")
     return output_file
 
 def parse_size(size_str):
@@ -74,7 +80,7 @@ def parse_size(size_str):
         return int(size_str)
     
 def main(args):
-    output_file = compress_file(args.file, args.size, args.format, args.show_background, args.output)
+    output_file = compress_file(args.file, args.size, args.format, args.show_background, args.no_audio, args.output)
     print(f"Compressed file saved as {output_file}")
 
 if __name__ == "__main__":
@@ -84,6 +90,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc.).', type=parse_size)
     parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
+    parser.add_argument('--no-audio', action='store_true', help='Remove all audio from the output.')
     
     try:
         args = parser.parse_args()
