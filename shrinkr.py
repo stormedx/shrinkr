@@ -6,6 +6,10 @@ import time
 import itertools
 
 def compress_file(input_file, target_size, output_format, show_background, output_dir=None):
+    
+    if output_dir is None:
+        output_dir = os.path.dirname(input_file)
+        
     base_dir = os.path.dirname(input_file)
     base_name = os.path.basename(input_file)
     name, _ = os.path.splitext(base_name)
@@ -17,10 +21,7 @@ def compress_file(input_file, target_size, output_format, show_background, outpu
     log_file = os.path.join(log_dir, 'ffmpeg2pass')
     os.makedirs(log_dir, exist_ok=True)
     
-
-    
     spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
-
     print("Compressing files, please wait...", end="", flush=True)
 
     codec_map = {
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Compress a video file.')
     parser.add_argument('file', help='The video file you want to compress.')
     parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
-    parser.add_argument('-s', '--size', default='7m', help='Compress a file to a custom size (400kb, 5mb, etc.).', type=parse_size)
+    parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc.).', type=parse_size)
     parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
     
