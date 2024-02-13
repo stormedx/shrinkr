@@ -7,6 +7,12 @@ import argparse
 import time
 import itertools
 
+class CustomArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+        
 def compress_file(input_file, target_size, output_format, show_background, no_audio, output_dir=None):
     
     if output_dir is None:
@@ -86,7 +92,7 @@ def main(args):
     print(f"Compressed file saved as {output_file}")
 
 def main():
-    parser = argparse.ArgumentParser(description='Compress a video file.')
+    parser = CustomArgumentParser(description='Compress a video file.')
     parser.add_argument('file', help='The video file you want to compress.')
     parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
     parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc).', type=parse_size)
@@ -110,7 +116,6 @@ def main():
         print(str(e))
         parser.print_help()
     except SystemExit:
-        parser.print_help()
         sys.exit(0)
 
 if __name__ == "__main__":
