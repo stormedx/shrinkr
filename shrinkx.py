@@ -34,7 +34,7 @@ def compress_file(input_file, target_size, output_format, show_background, no_au
 
     codec_map = {
         'mp4': ('libx264', 'aac', ['-preset', 'ultrafast']),
-        'webm': ('libvpx', 'libopus', ['-cpu-used', '0']),
+        'webm': ('libvpx-vp9', 'libopus', ['-speed', '4', '-row-mt', '1']),
     }
     
     if output_format not in codec_map:
@@ -104,6 +104,8 @@ def main():
 
     try:
         args = parser.parse_args()
+        if args.format == 'webm':
+            print("Warning: .webm conversions may take longer than usual.")
         if args.chan:
             args.format = 'webm'
             args.size = parse_size('3mb')
