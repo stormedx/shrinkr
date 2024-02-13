@@ -79,11 +79,11 @@ def compress_file(input_file, target_size, output_format, show_background, no_au
 def parse_size(size_str):
     size_str = size_str.lower()
     if size_str.endswith('kb'):
-        return int(size_str[:-2]) * 1024
+        return int(float(size_str[:-2]) * 1024)
     elif size_str.endswith('mb'):
-        return int(size_str[:-2]) * 1024 * 1024
+        return int(float(size_str[:-2]) * 1024 * 1024)
     elif size_str.endswith('gb'):
-        return int(size_str[:-2]) * 1024 * 1024 * 1024
+        return int(float(size_str[:-2]) * 1024 * 1024 * 1024)
     else:
         return int(size_str)
     
