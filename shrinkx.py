@@ -92,7 +92,7 @@ def main(args):
     print(f"Compressed file saved as {output_file}")
 
 def main():
-    parser = CustomArgumentParser(description='Compress a video file.')
+    parser = CustomArgumentParser(description='Compress a video file.', usage='%(prog)s [flag] file')
     parser.add_argument('file', help='The video file you want to compress.')
     parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
     parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc).', type=parse_size)
