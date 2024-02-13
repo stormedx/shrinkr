@@ -84,17 +84,26 @@ def main(args):
     print(f"Compressed file saved as {output_file}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Compress a video file.')
-    parser.add_argument('file', help='The video file you want to compress.')
-    parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
-    parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc.).', type=parse_size)
-    parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
-    parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
-    parser.add_argument('--no-audio', action='store_true', help='Remove all audio from the output.')
-    
-    try:
-        args = parser.parse_args()
-    except SystemExit:
-        parser.print_help()
-        sys.exit(0)
-    main(args)
+        parser = argparse.ArgumentParser(description='Compress a video file.')
+        parser.add_argument('file', help='The video file you want to compress.')
+        parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
+        parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc).', type=parse_size)
+        parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
+        parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
+        parser.add_argument('--no-audio', action='store_true', help='Remove all audio from the output.')
+        parser.add_argument('--chan', action='store_true', help='Shortcut for compressing files into webms suitable for 4chan (<3.5mb, webm format, no audio).')
+        parser.add_argument('--discord', action='store_true', help='Shortcut for for compressing files suitable for Discord (<8mb, mp4 format).')
+
+        try:
+            args = parser.parse_args()
+            if args.chan:
+                args.format = 'webm'
+                args.size = parse_size('3mb')
+                args.no_audio = True
+            if args.discord:
+                args.format = 'mp4'
+                args.size = parse_size('7mb')
+        except SystemExit:
+            parser.print_help()
+            sys.exit(0)
+        main(args)
