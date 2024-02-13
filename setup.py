@@ -10,7 +10,7 @@ class PostInstallCommand(install):
 
 setup(
     name='shrinkx',
-    version='1.0.1',
+    version='1.2',
     py_modules=['shrinkx'],
     description='A Python tool for effortlessly compressing media files for sharing online.',
     long_description=open('README.md').read(),
