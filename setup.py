@@ -2,15 +2,15 @@ from setuptools import setup
 from setuptools.command.install import install
 
 class PostInstallCommand(install):
-    """Post-installation for installation mode."""
+    """Post-installation."""
     def run(self):
         install.run(self)
-        print("\nIf the 'shrinkx' command is not available, add the following line to your shell's configuration file:")
+        print("\nTo make 'shrinkx' available as a command, add the following line to your .bashrc or .zshrc file:")
         print('export PATH="$(python -m site --user-base)/bin:$PATH"\n')
 
 setup(
-    name='ShrinkX',
-    version='1.5',
+    name='shrinkx',
+    version='1.0.1',
     py_modules=['shrinkx'],
     description='A Python tool for effortlessly compressing media files for sharing online.',
     long_description=open('README.md').read(),
