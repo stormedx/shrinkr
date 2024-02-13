@@ -2,7 +2,7 @@
 Shrinkr is a Python tool for effortlessly compressing media files using ffmpeg. The tool is inspired by the website https://8mb.video and the annoyance of memorizing ffmpeg command arguments 😩.
 
 ## Demo
-https://github.com/stormedx/shrinkx/assets/88412569/fdc7f111-ddf8-4053-a89e-5bf68a058152
+https://github.com/stormedx/shrinkx/assets/88412569/1937f006-138b-4cea-b86b-2b10a71ce76a
 
 ## Requirements
 
