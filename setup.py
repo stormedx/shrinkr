@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ShrinkX',
-    version='0.1',
+    version='1.0',
     packages=find_packages(),
     description='A Python tool for effortlessly compressing media files for sharing online.',
     long_description=open('README.md').read(),
@@ -11,21 +11,11 @@ setup(
     author_email='stormedxx@icloud.com',
     url='https://github.com/stormedx/shrinkx',
     install_requires=[
-        'os',
-        'sys',
-        'subprocess',
         'argparse',
-        'time',
-        'itertools',
     ],
-)
-
-setup(
-    # ...
     entry_points={
         'console_scripts': [
             'shrinkx=shrinkx:main',
         ],
     },
-    # ...
 )
