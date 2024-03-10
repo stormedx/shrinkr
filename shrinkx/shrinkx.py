@@ -20,13 +20,18 @@ def is_youtube_link(input_str):
     youtube_regex = re.compile(r'(https?://)?(www\.)?(youtube.com|youtu.be)/.+')
     return re.match(youtube_regex, input_str) is not None
 
-def download_video(youtube_link, output_dir='.'):
+def download_video(youtube_link, show_background, output_dir='.'):
     """Download video using yt-dlp."""
     print("Downloading video, please wait...")
     output_template = os.path.join(output_dir, '%(title)s.%(ext)s')
     command = ['yt-dlp', '-f', 'best[ext=mp4]', '-o', output_template, youtube_link]
-    subprocess.run(command, check=True)
-    downloaded_file = subprocess.check_output(['yt-dlp', '--get-filename', '-f', 'best[ext=mp4]', '-o', output_template, youtube_link])
+    
+    if show_background:
+        subprocess.run(command, check=True)
+    else:
+        subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    
+    downloaded_file = subprocess.check_output(['yt-dlp', '--get-filename', '-f', 'best[ext=mp4]', '-o', output_template, youtube_link], stderr=subprocess.DEVNULL)
     return downloaded_file.strip().decode('utf-8')
 
 def compress_file(input_file, target_size, output_format, show_background, no_audio, output_dir=None):
@@ -134,10 +139,13 @@ def main():
                 print("yt-dlp is not installed. Please install yt-dlp to download videos from YouTube.")
                 sys.exit(1)
             print("YouTube link detected. Attempting to download...")
-            input_file = download_video(input_file)
+            input_file = download_video(input_file, args.show_background)
             
         output_file = compress_file(input_file, args.size, args.format, args.show_background, args.no_audio, args.output)
         print(f"Compressed file saved as {output_file}")
+        
+        if input_file != output_file:  # Check to ensure we're not deleting the output file
+            os.remove(input_file)
         
     except Exception as e:
         print(str(e))
