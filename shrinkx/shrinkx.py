@@ -6,13 +6,29 @@ import subprocess
 import argparse
 import time
 import itertools
+import re
+import shutil
 
 class CustomArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
         sys.exit(2)
-        
+
+def is_youtube_link(input_str):
+    """Check if the input string is a YouTube URL."""
+    youtube_regex = re.compile(r'(https?://)?(www\.)?(youtube.com|youtu.be)/.+')
+    return re.match(youtube_regex, input_str) is not None
+
+def download_video(youtube_link, output_dir='.'):
+    """Download video using yt-dlp."""
+    print("Downloading video, please wait...")
+    output_template = os.path.join(output_dir, '%(title)s.%(ext)s')
+    command = ['yt-dlp', '-f', 'best[ext=mp4]', '-o', output_template, youtube_link]
+    subprocess.run(command, check=True)
+    downloaded_file = subprocess.check_output(['yt-dlp', '--get-filename', '-f', 'best[ext=mp4]', '-o', output_template, youtube_link])
+    return downloaded_file.strip().decode('utf-8')
+
 def compress_file(input_file, target_size, output_format, show_background, no_audio, output_dir=None):
     
     if output_dir is None:
@@ -89,33 +105,40 @@ def parse_size(size_str):
     else:
         return int(size_str)
     
-def main(args):
-    output_file = compress_file(args.file, args.size, args.format, args.show_background, args.no_audio, args.output)
-    print(f"Compressed file saved as {output_file}")
-
 def main():
-    parser = CustomArgumentParser(description='Compress a video file.', usage='%(prog)s [flag] file')
-    parser.add_argument('file', help='The video file you want to compress.')
+    parser = CustomArgumentParser(description='Compress a video file or YouTube link.', usage='%(prog)s [flag] file/link')
+    parser.add_argument('file', help='The video file or YouTube link you want to compress.')
     parser.add_argument('-f', '--format', default='mp4', help='The output format for the compressed file.')
     parser.add_argument('-s', '--size', default='7mb', help='Compress a file to a custom size (400kb, 5mb, etc).', type=parse_size)
     parser.add_argument('-o', '--output', help='Output directory for the compressed file.')
     parser.add_argument('--show-background', action='store_true', help='Shows the ffmpeg output.')
     parser.add_argument('--no-audio', action='store_true', help='Remove all audio from the output.')
     parser.add_argument('--chan', action='store_true', help='Shortcut for compressing files into webms suitable for 4chan (<3.5mb, webm format, no audio).')
-    parser.add_argument('--discord', action='store_true', help='Shortcut for for compressing files suitable for Discord (<8mb, mp4 format).')
+    parser.add_argument('--discord', action='store_true', help='Shortcut for compressing files suitable for Discord (<8mb, mp4 format).')
 
     try:
         args = parser.parse_args()
-        if args.format == 'webm':
-            print("Warning: .webm conversions may take longer than usual.")
+
         if args.chan:
             args.format = 'webm'
             args.size = parse_size('3mb')
             args.no_audio = True
-        if args.discord:
+        elif args.discord:
             args.format = 'mp4'
-            args.size = parse_size('7mb')
-        compress_file(args.file, args.size, args.format, args.show_background, args.no_audio)
+            args.size = parse_size('8mb')
+            
+        input_file = args.file
+        
+        if is_youtube_link(input_file):
+            if not shutil.which('yt-dlp'):
+                print("yt-dlp is not installed. Please install yt-dlp to download videos from YouTube.")
+                sys.exit(1)
+            print("YouTube link detected. Attempting to download...")
+            input_file = download_video(input_file)
+            
+        output_file = compress_file(input_file, args.size, args.format, args.show_background, args.no_audio, args.output)
+        print(f"Compressed file saved as {output_file}")
+        
     except Exception as e:
         print(str(e))
         parser.print_help()
